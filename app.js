@@ -7,10 +7,12 @@ var async = require('async');
 var socketio = require('socket.io');
 var express = require('express');
 var mongoose = require('mongoose');
-var pug = require("pug");
+//var pug = require("pug");
+var ejs = require('ejs');
 var crypto = require('crypto');
 var device = require('express-device');
-
+var session = require('cookie-session');
+var helmet = require('helmet');
 //Se crean las variables para el llamado de los archivos
 var router = express();
 var server = http.createServer(router);
@@ -19,7 +21,9 @@ var io = socketio.listen(server);
 var db = mongoose.connection;
 
 
-router.set('view engine', 'pug');
+router.use(helmet());
+router.engine('html', require('ejs').renderFile);
+router.set('view engine', 'html');
 router.set('views', __dirname + '/views');
 
 
@@ -50,10 +54,20 @@ router.get('/', function(req, res){
   
 });
 // Se crea el key para sincronizar
-
-
-
 var secret = randomValueHex(4);
+
+var expiryDate = new Date( Date.now() + 60 * 60 * 1000 ); // 1 hour
+router.use(session({
+  name: 'png_lesn',
+  keys: [secret, 'l3c0d3'],
+  cookie: { secure: true,
+            httpOnly: true,
+            domain: 'poorsync-ctangarife.c9users.io',
+            path: '/',
+            expires: expiryDate
+          }
+  })
+);
 
 // Inicializa soket.io
 

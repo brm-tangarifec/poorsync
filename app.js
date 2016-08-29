@@ -13,6 +13,7 @@ var crypto = require('crypto');
 var device = require('express-device');
 var session = require('cookie-session');
 var helmet = require('helmet');
+var cookieParser = require('cookie-parser');
 //Se crean las variables para el llamado de los archivos
 var router = express();
 var server = http.createServer(router);
@@ -35,13 +36,48 @@ function randomValueHex (len) {
 
 //Se le indica cual es la carpeta en la cual a lo que se le hace display
 //router.use(express.static(path.resolve(__dirname, 'public')));
-
+var secret = randomValueHex(4);
 router.use(express.static(__dirname + '/public'));
+
+var expiryDate = new Date( Date.now() + 60 * 60 * 1000 ); // 1 hour
+/*router.use(session({
+  name: 'png_lesn',
+  keys: [secret, 'l3c0d3'],
+  cookie: { secure: true,
+            httpOnly: true,
+            domain: 'poorsync-ctangarife.c9users.io',
+            path: '/',
+            expires: expiryDate
+          }
+  })
+);*/
+router.use(cookieParser());
+router.use(function (req, res, next) {
+  // check if client sent cookie
+  var cookie = req.cookies.cookieName;
+  console.log(cookie);
+  if (cookie === undefined)
+  {
+    // no: set a new cookie
+    var randomNumber=Math.random().toString();
+    randomNumber=randomNumber.substring(2,randomNumber.length);
+    res.cookie('png_lesn',randomNumber, { maxAge: expiryDate, httpOnly: true, secure: true, path: '/',});
+    console.log('cookie created successfully');
+    console.log(res.cookie.cookieName);
+  } 
+  else
+  {
+    // yes, cookie was already present 
+    console.log('cookie exists', cookie);
+  } 
+  next(); // <-- important!
+});
 
 router.use(device.capture());
 router.get('/', function(req, res){
   var is_mobile=req.device.type.toUpperCase();
    if(is_mobile!='PHONE'){
+     
      res.render('index', {val: secret});
      //res.sendfile(__dirname + '/index.html');
    }else{
@@ -54,20 +90,9 @@ router.get('/', function(req, res){
   
 });
 // Se crea el key para sincronizar
-var secret = randomValueHex(4);
 
-var expiryDate = new Date( Date.now() + 60 * 60 * 1000 ); // 1 hour
-router.use(session({
-  name: 'png_lesn',
-  keys: [secret, 'l3c0d3'],
-  cookie: { secure: true,
-            httpOnly: true,
-            domain: 'poorsync-ctangarife.c9users.io',
-            path: '/',
-            expires: expiryDate
-          }
-  })
-);
+
+
 
 // Inicializa soket.io
 

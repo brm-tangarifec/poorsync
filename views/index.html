@@ -13,7 +13,8 @@
   </head>
   <body>
     <form class="login"><span>What's your secret key? </span>
-      <input type="text" placeholder="Please enter your secret key!" value="<%- val %>">
+   
+      <input type="text" placeholder="Please enter your secret key!"  <% if (locals.val){ %> value="<%- val %>" <% } %>>
       <input type="submit" value="➡">
     </form>
     <div class="reveal blurred">

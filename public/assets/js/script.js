@@ -46,7 +46,7 @@ jQuery(function() {
 		// If we do, we can continue with the presentation.
 
 		if(data.access === "granted") {
-
+			 socket.emit('adduser', {username:"user",room:key});
 			// Unblur everything
 			presentation.removeClass('blurred');
 
@@ -105,7 +105,7 @@ jQuery(function() {
 			animationTimeout = setTimeout(function(){
 				secretTextBox.removeClass('animation');
 			}, 1000);
-
+			
 			form.show();
 		}
 

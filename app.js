@@ -21,6 +21,11 @@ var io = socketio.listen(server);
 
 var db = mongoose.connection;
 
+// id de usuarios
+var usernames = {};
+
+//id de rooms
+var rooms = [];
 
 router.use(helmet());
 router.engine('html', require('ejs').renderFile);
@@ -55,15 +60,15 @@ router.use(cookieParser());
 router.use(function (req, res, next) {
   // check if client sent cookie
   var cookie = req.cookies.cookieName;
-  console.log(cookie);
+  //console.log(cookie);
   if (cookie === undefined)
   {
     // no: set a new cookie
     var randomNumber=Math.random().toString();
     randomNumber=randomNumber.substring(2,randomNumber.length);
     res.cookie('png_lesn',randomNumber, { maxAge: expiryDate, httpOnly: true, secure: true, path: '/',});
-    console.log('cookie created successfully');
-    console.log(res.cookie.cookieName);
+    //console.log('cookie created successfully');
+    //console.log(res.cookie.cookieName);
   } 
   else
   {
@@ -96,47 +101,66 @@ router.get('/', function(req, res){
 
 // Inicializa soket.io
 
-var presentation = io.on('connection', function (socket) {
+io.on('connection', function (socket) {
     
     // A new client has come online. Check the secret key and 
 	// emit a "granted" or "denied" message.Check
 	
 	socket.on('load', function(data){
+		if(data.key === secret )
+      {
+
+        var new_room = secret;
+        rooms.push(new_room);
+        data.room = new_room;
+        socket.emit('access', {access:"granted"});
+      }
+      else
+      {
+        socket.emit('access', {access:"denied"});
+      }
 		
-		socket.emit('access', {
-			access: (data.key === secret ? "granted" : "denied")
+
 		});
 
-	});
-	
+     socket.on('adduser', function (data) {
+        var username = data.username;
+        var room = data.room;
+        //console.log("asdasd "+data.room);
+        if (rooms.indexOf(room) != -1) {
+            
+            socket.room = room;
+            usernames[username] = username;
+            socket.join(room);
+
+        } else {
+            socket.emit('access', {access:"denied"});
+        }
+    });
+
+  // Metodo Socket.on para crear el room
+
 	// Clients send the 'slide-changed' message whenever they navigate to a new slide.
 
 	socket.on('slide-changed', function(data){
 
 		// Check the secret key again
-
+   
 		if(data.key === secret) {
 
 			// Tell all connected clients to navigate to the new slide
-			
-			presentation.emit('navigate', {
-				hash: data.hash
-			});
+			//console.log(socket.room);
+      io.sockets.in(socket.room).emit('navigate',{
+      hash: data.hash
+      });
 		}
 
 	});
-
-    
-  });
-  
-
-
+});
 //Se inicia el servidor con la url que se va a usar en el puerto 3000
 server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
   var addr = server.address();
   console.log("Se inicia la vaina ", addr.address + ":" + addr.port);
   console.log("Código "+ secret);
 
-
-  
 });

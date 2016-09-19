@@ -20,6 +20,15 @@ jQuery(function() {
 	var key = "", animationTimeout;
 
 	// When the page is loaded it asks you for a key and sends it to the server
+	$(document ).ready(function() {
+		$('#video').removeAttr("controls");   
+    	socket.emit('load');
+    	socket.on('key',function(data){
+    		console.log(data.val);
+
+    		$('#txtKey').val(data.val);
+    	});
+	});
 
 	form.submit(function(e){
 
@@ -31,13 +40,20 @@ jQuery(function() {
 		// through the socket.io channel with a 'load' event.
 
 		if(key.length) {
-			socket.emit('load', {
-				key: key
-			});
+
+			socket.emit('login',{username:'user',room:key});
+
 		}
 
 	});
 
+socket.on('roomcreated',function(data){
+	socket.emit('adduser', data);
+});
+
+socket.on('joinuser',function(data){
+	socket.emit('adduser', data);
+});
 	// The server will either grant or deny access, depending on the secret key
 
 	socket.on('access', function(data){
@@ -46,7 +62,7 @@ jQuery(function() {
 		// If we do, we can continue with the presentation.
 
 		if(data.access === "granted") {
-
+			 
 			// Unblur everything
 			presentation.removeClass('blurred');
 
@@ -72,10 +88,25 @@ jQuery(function() {
 				});
 			});
 
+			socket.on('play',function(data){
+				
+				$('video').get(0).currentTime=data.timelapse;
+				//console.log(data.timelapse);
+				$('#video').trigger(data.act);
+			});
+			socket.on('pause',function(data){
+			
+				$('video').get(0).currentTime=data.timelapse;
+				//console.log(data.timelapse);
+				$('#video').trigger(data.act);
+			});
 			socket.on('navigate', function(data){
-	
+			console.log('navigate');
+			socket.emit('video-changed-state',{act:$('#video').get(0).paused,
+				timelapse: $('#video').get(0).currentTime
+			});
 				// Another device has changed its slide. Change it in this browser, too:
-
+				
 				window.location.hash = data.hash;
 
 				// The "ignore" variable stops the hash change from
@@ -105,7 +136,7 @@ jQuery(function() {
 			animationTimeout = setTimeout(function(){
 				secretTextBox.removeClass('animation');
 			}, 1000);
-
+			
 			form.show();
 		}
 

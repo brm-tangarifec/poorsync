@@ -62,7 +62,11 @@ socket.on('joinuser',function(data){
 		// If we do, we can continue with the presentation.
 
 		if(data.access === "granted") {
+<<<<<<< HEAD
 			 
+=======
+			 socket.emit('adduser', {username:"user",room:key});
+>>>>>>> origin/master
 			// Unblur everything
 			presentation.removeClass('blurred');
 

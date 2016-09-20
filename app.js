@@ -20,6 +20,11 @@ var server = http.createServer(router);
 var io = socketio.listen(server);
 
 
+// id de usuarios
+var usernames = {};
+
+//id de rooms
+var rooms = [];
 
 // id de usuarios
 var usernames = {};
@@ -114,6 +119,7 @@ io.on('connection', function (socket) {
 
   });
 
+<<<<<<< HEAD
    // A new client has come online. Check the secret key and 
   // emit a "granted" or "denied" message.Check
 	socket.on('login', function(data){
@@ -131,23 +137,54 @@ io.on('connection', function (socket) {
          socket.emit('joinuser',data);
         }
      
+=======
+io.on('connection', function (socket) {
+    
+    // A new client has come online. Check the secret key and 
+	// emit a "granted" or "denied" message.Check
+	
+	socket.on('load', function(data){
+		if(data.key === secret )
+      {
+
+        var new_room = secret;
+        rooms.push(new_room);
+        data.room = new_room;
+        socket.emit('access', {access:"granted"});
+      }
+      else
+      {
+        socket.emit('access', {access:"denied"});
+      }
+		
+
+>>>>>>> origin/master
 		});
 
      socket.on('adduser', function (data) {
         var username = data.username;
         var room = data.room;
+<<<<<<< HEAD
 
+=======
+        //console.log("asdasd "+data.room);
+>>>>>>> origin/master
         if (rooms.indexOf(room) != -1) {
             
             socket.room = room;
             usernames[username] = username;
             socket.join(room);
+<<<<<<< HEAD
             socket.emit('access', {access:"granted"});
+=======
+
+>>>>>>> origin/master
         } else {
             socket.emit('access', {access:"denied"});
         }
     });
 
+<<<<<<< HEAD
   // Metodos para la sincronizacion de video
   socket.on('video-changed-state',function(data){
     var act=data.act;
@@ -166,6 +203,9 @@ io.on('connection', function (socket) {
       
  
   });
+=======
+  // Metodo Socket.on para crear el room
+>>>>>>> origin/master
 
 	// Clients send the 'slide-changed' message whenever they navigate to a new slide.
 
@@ -173,14 +213,22 @@ io.on('connection', function (socket) {
 
 		// Check the secret key again
    
+<<<<<<< HEAD
 
+=======
+		if(data.key === secret) {
+>>>>>>> origin/master
 
 			// Tell all connected clients to navigate to the new slide
 			//console.log(socket.room);
       io.sockets.in(socket.room).emit('navigate',{
       hash: data.hash
       });
+<<<<<<< HEAD
 
+=======
+		}
+>>>>>>> origin/master
 
 	});
 });
@@ -188,6 +236,10 @@ io.on('connection', function (socket) {
 server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
   var addr = server.address();
   console.log("Se inicia la vaina ", addr.address + ":" + addr.port);
+<<<<<<< HEAD
   //console.log("Código "+ secret);
+=======
+  console.log("Código "+ secret);
+>>>>>>> origin/master
 
 });
